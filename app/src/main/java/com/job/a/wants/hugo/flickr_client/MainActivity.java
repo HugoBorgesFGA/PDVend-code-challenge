@@ -31,12 +31,53 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean readyToLoad = true;
     private String queryString = "";
+
+    private RecyclerView recyclerView;
+    private ListPhotoAdapter listPhotoAdapter;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         this.flickr = new Flickr(FLICKR_APP_ID, FLICKR_APP_SECRET);
+
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        listPhotoAdapter = new ListPhotoAdapter(this);
+        recyclerView.setAdapter(listPhotoAdapter);
+        recyclerView.setHasFixedSize(true);
+        final GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if(dy > 0){
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+
+                    if (readyToLoad){
+                        if ((visibleItemCount + pastVisibleItems) >= totalItemCount){
+                            readyToLoad = false;
+
+                            currentPage++;
+                            getData();
+                        }
+                    }
+                }
+            }
+        });
+
+        listPhotoAdapter.setItemClickedListener(new ListPhotoAdapter.OnItemClickedListener() {
+            @Override
+            public void onItemClicked(int itemIndex) {
+            }
+        });
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -52,17 +93,32 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 Toast toast = Toast.makeText(MainActivity.this, "Searching...", Toast.LENGTH_SHORT);
                 toast.show();
+
+                clearDisplayPictures();
+
                 queryString = query;
+                getData();
+
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                if (newText.isEmpty()){
+                    clearDisplayPictures();
+                }
+
                 return false;
             }
         });
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void clearDisplayPictures(){
+        listPhotoAdapter.clearDataSet();
+        queryString = "";
+        currentPage = 1;
     }
 
     private void getData(){
