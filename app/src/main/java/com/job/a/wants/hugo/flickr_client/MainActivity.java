@@ -2,19 +2,41 @@ package com.job.a.wants.hugo.flickr_client;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.job.a.wants.hugo.flickr_client.flickr.Flickr;
+import com.job.a.wants.hugo.flickr_client.model.Photo;
+
+import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
+    public static final String EXTRAS_PHOTO_URL = "EXTRAS_PHOTO_URL";
+    public static final String EXTRAS_PHOTO_TITLE = "EXTRAS_PHOTO_TITLE";
+    public static final String EXTRAS_PHOTO_DESCRIPTION = "EXTRAS_PHOTO_DESCRIPTION";
+
+    private static final String TAG = "FlickrClient";
+
+    private static final String FLICKR_APP_ID = "b121c9d238ee4226633b1eb1b67d17f7";
+    private static final String FLICKR_APP_SECRET = "";
+    private Flickr flickr;
+
+    private static final int ITEMS_PER_PAGE = 10;
+    private int currentPage = 1;
+
+    private boolean readyToLoad = true;
     private String queryString = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        this.flickr = new Flickr(FLICKR_APP_ID, FLICKR_APP_SECRET);
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -43,5 +65,29 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    private void getData(){
+        if (this.queryString.isEmpty()) return;
+
+        flickr.searchPhotos(this.queryString, ITEMS_PER_PAGE, currentPage, new Flickr.FlickrSearchFinishedHandler() {
+            public void onSearchFinished(boolean success, ArrayList<Photo> photos) {
+                readyToLoad = true;
+
+                if (success) {
+                    if (photos.size() == 0) {
+                        Toast toast = Toast.makeText(MainActivity.this, "No results were found", Toast.LENGTH_SHORT);
+                        toast.show();
+                        return;
+                    }
+
+                    Toast toast = Toast.makeText(MainActivity.this, "Loading", Toast.LENGTH_SHORT);
+                    toast.show();
+
+                    listPhotoAdapter.setDataset(photos);
+                } else {
+                    Toast toast = Toast.makeText(MainActivity.this, "Search failed!", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }
+        });
     }
 }
