@@ -44,7 +44,9 @@ public class Flickr {
         void onPhotoTaken(boolean success, Photo photo);
     }
 
-    public void getPhoto(String photoID, final FlickrPhotoTakenHandler handler) {
+    public boolean getPhoto(String photoID, final FlickrPhotoTakenHandler handler) {
+        if (photoID.isEmpty()) return false;
+
         Call<FlickrGetSize> flickrGetSizeCall = flickrClient.getPhoto(this.apiKey, photoID);
 
         flickrGetSizeCall.enqueue(new Callback<FlickrGetSize>() {
@@ -87,6 +89,8 @@ public class Flickr {
                 handler.onPhotoTaken(false, null);
             }
         });
+
+        return false;
     }
 
 
@@ -94,7 +98,11 @@ public class Flickr {
         void onSearchFinished(boolean success, ArrayList<Photo> photos);
     }
 
-    public void searchPhotos(String text, final int perPage, int page, final FlickrSearchFinishedHandler handler) {
+    public boolean searchPhotos(String text, final int perPage, int page, final FlickrSearchFinishedHandler handler) {
+        if (page < 1) return false;
+        if (perPage < 1) return false;
+        if (text.isEmpty()) return false;
+
         Call<FlickrSearch> flickrSearchCall = flickrClient.searchPhotoByText(this.apiKey, text, perPage, page);
 
         flickrSearchCall.enqueue(new Callback<FlickrSearch>() {
@@ -139,6 +147,8 @@ public class Flickr {
                 handler.onSearchFinished(false, null);
             }
         });
+
+        return true;
     }
 
 
