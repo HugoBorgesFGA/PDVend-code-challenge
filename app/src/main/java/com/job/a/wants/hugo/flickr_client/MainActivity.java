@@ -1,10 +1,12 @@
 package com.job.a.wants.hugo.flickr_client;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,6 +16,7 @@ import com.job.a.wants.hugo.flickr_client.flickr.Flickr;
 import com.job.a.wants.hugo.flickr_client.model.Photo;
 
 import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String EXTRAS_PHOTO_URL = "EXTRAS_PHOTO_URL";
@@ -74,6 +77,13 @@ public class MainActivity extends AppCompatActivity {
         listPhotoAdapter.setItemClickedListener(new ListPhotoAdapter.OnItemClickedListener() {
             @Override
             public void onItemClicked(int itemIndex) {
+                Photo photo = listPhotoAdapter.getItem(itemIndex);
+
+                Intent intent = new Intent(getApplicationContext(), PhotoDetailActivity.class);
+                intent.putExtra(EXTRAS_PHOTO_TITLE, photo.getId());
+                intent.putExtra(EXTRAS_PHOTO_URL, photo.getUrl());
+                intent.putExtra(EXTRAS_PHOTO_DESCRIPTION, photo.getTitle());
+                startActivity(intent);
             }
         });
     }
